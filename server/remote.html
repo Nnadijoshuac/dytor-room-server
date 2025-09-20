@@ -1,0 +1,797 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>dytorpro Remote</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+            min-height: 100vh;
+            color: white;
+            overflow-x: hidden;
+        }
+
+        .container {
+            max-width: 400px;
+            margin: 0 auto;
+            padding: 20px;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Header */
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding: 20px 0;
+        }
+
+        .logo {
+            font-size: 28px;
+            font-weight: 800;
+            background: linear-gradient(90deg, #3b82f6, #06b6d4);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 5px;
+        }
+
+        .subtitle {
+            color: #64748b;
+            font-size: 12px;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        /* Status */
+        .status {
+            background: rgba(30, 41, 59, 0.8);
+            border: 1px solid #334155;
+            border-radius: 12px;
+            padding: 15px;
+            margin-bottom: 25px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            backdrop-filter: blur(10px);
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+
+        .status-dot.connected {
+            background: #10b981;
+        }
+
+        .status-dot.disconnected {
+            background: #ef4444;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.6; }
+        }
+
+        @keyframes slideIn {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+
+        @keyframes slideOut {
+            from { transform: translateX(0); opacity: 1; }
+            to { transform: translateX(100%); opacity: 0; }
+        }
+
+        .status-text {
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        /* Timer Display */
+        .timer {
+            background: rgba(15, 23, 42, 0.8);
+            border: 1px solid #334155;
+            border-radius: 16px;
+            padding: 25px 20px;
+            text-align: center;
+            margin-bottom: 25px;
+            backdrop-filter: blur(10px);
+        }
+
+        .timer-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: #94a3b8;
+            margin-bottom: 10px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .timer-time {
+            font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Roboto Mono', monospace;
+            font-size: 36px;
+            font-weight: 700;
+            color: #3b82f6;
+            margin-bottom: 8px;
+        }
+
+        .timer-time.time-up {
+            color: #ef4444;
+            animation: blink 1s steps(2, start) infinite;
+        }
+
+        @keyframes blink {
+            0%, 49% { opacity: 1; }
+            50%, 100% { opacity: 0.3; }
+        }
+
+        .timer-status {
+            font-size: 12px;
+            color: #64748b;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        /* Controls */
+        .controls {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .control-section {
+            background: rgba(30, 41, 59, 0.6);
+            border-radius: 12px;
+            padding: 15px;
+            backdrop-filter: blur(10px);
+        }
+
+        .section-title {
+            font-size: 13px;
+            font-weight: 700;
+            color: #e2e8f0;
+            margin-bottom: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .button-grid {
+            display: grid;
+            gap: 10px;
+        }
+
+        .button-grid.two-col {
+            grid-template-columns: 1fr 1fr;
+        }
+
+        .button-grid.four-col {
+            grid-template-columns: repeat(4, 1fr);
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #1e293b, #334155);
+            border: 1px solid #475569;
+            border-radius: 8px;
+            padding: 12px;
+            color: white;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+        }
+
+        .btn:active {
+            transform: translateY(0);
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .btn:disabled:hover {
+            transform: none;
+            box-shadow: none;
+        }
+
+        /* Button variants */
+        .btn-primary {
+            background: linear-gradient(135deg, #10b981, #059669);
+            border-color: #10b981;
+        }
+
+        .btn-secondary {
+            background: linear-gradient(135deg, #f59e0b, #d97706);
+            border-color: #f59e0b;
+        }
+
+        .btn-danger {
+            background: linear-gradient(135deg, #ef4444, #dc2626);
+            border-color: #ef4444;
+        }
+
+        .btn-accent {
+            background: linear-gradient(135deg, #8b5cf6, #7c3aed);
+            border-color: #8b5cf6;
+        }
+
+        .btn-info {
+            background: linear-gradient(135deg, #3b82f6, #2563eb);
+            border-color: #3b82f6;
+        }
+
+        /* Message input */
+        .message-input {
+            background: rgba(15, 23, 42, 0.8);
+            border: 1px solid #334155;
+            border-radius: 8px;
+            padding: 12px;
+            color: white;
+            font-size: 12px;
+            width: 100%;
+            margin-bottom: 10px;
+            resize: none;
+            font-family: inherit;
+            backdrop-filter: blur(10px);
+        }
+
+        .message-input:focus {
+            outline: none;
+            border-color: #3b82f6;
+        }
+
+        .message-input::placeholder {
+            color: #64748b;
+        }
+
+        /* Preset buttons */
+        .presets {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+            margin-bottom: 10px;
+        }
+
+        .preset-btn {
+            background: rgba(55, 65, 81, 0.8);
+            border: 1px solid #4b5563;
+            border-radius: 6px;
+            padding: 8px 10px;
+            color: #d1d5db;
+            font-size: 11px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .preset-btn:hover {
+            background: #3b82f6;
+            border-color: #3b82f6;
+            color: white;
+        }
+
+        /* Footer */
+        .footer {
+            text-align: center;
+            padding: 15px 0;
+            color: #64748b;
+            font-size: 11px;
+            border-top: 1px solid rgba(51, 65, 85, 0.3);
+            margin-top: 20px;
+        }
+
+        /* Disconnected overlay */
+        .disconnected-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.9);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+
+        .disconnected-content {
+            text-align: center;
+            padding: 30px;
+            background: rgba(30, 41, 59, 0.9);
+            border: 1px solid #ef4444;
+            border-radius: 12px;
+            max-width: 280px;
+        }
+
+        .disconnected-content h2 {
+            font-size: 20px;
+            margin-bottom: 12px;
+            color: #ef4444;
+            font-weight: 700;
+        }
+
+        .disconnected-content p {
+            color: #94a3b8;
+            margin-bottom: 20px;
+            font-size: 14px;
+        }
+
+        .retry-btn {
+            background: linear-gradient(135deg, #3b82f6, #2563eb);
+            border: none;
+            border-radius: 6px;
+            padding: 10px 20px;
+            color: white;
+            font-weight: 600;
+            cursor: pointer;
+            font-size: 12px;
+        }
+
+        /* Responsive */
+        @media (max-width: 480px) {
+            .container { 
+                padding: 15px; 
+            }
+            
+            .button-grid.four-col { 
+                grid-template-columns: repeat(2, 1fr); 
+            }
+            
+            .timer-time { 
+                font-size: 30px; 
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <div class="logo">dytorpro</div>
+            <div class="subtitle">Remote Control</div>
+        </div>
+
+        <!-- Status -->
+        <div class="status">
+            <div class="status-dot" id="statusDot"></div>
+            <span class="status-text" id="statusText">Connecting...</span>
+        </div>
+
+        <!-- Timer -->
+        <div class="timer">
+            <div class="timer-title" id="timerTitle">Timer</div>
+            <div class="timer-time" id="timerTime">00:00</div>
+            <div class="timer-status" id="timerStatus">Ready</div>
+        </div>
+
+        <!-- Controls -->
+        <div class="controls">
+            <!-- Timer Controls -->
+            <div class="control-section">
+                <div class="section-title">Timer Control</div>
+                <div class="button-grid two-col">
+                    <button class="btn btn-primary" id="startResumeBtn">Start</button>
+                    <button class="btn btn-secondary" id="pauseBtn">Pause</button>
+                </div>
+            </div>
+
+            <!-- Add Time -->
+            <div class="control-section">
+                <div class="section-title">Add Time</div>
+                <div class="button-grid four-col">
+                    <button class="btn btn-info" onclick="addTime(30)">+30s</button>
+                    <button class="btn btn-info" onclick="addTime(60)">+1m</button>
+                    <button class="btn btn-info" onclick="addTime(300)">+5m</button>
+                    <button class="btn btn-info" onclick="addTime(600)">+10m</button>
+                </div>
+            </div>
+
+            <!-- Messages -->
+            <div class="control-section">
+                <div class="section-title">Messages</div>
+                
+                <div class="presets">
+                    <button class="preset-btn" onclick="sendQuickMessage('STANDBY')">Standby</button>
+                    <button class="preset-btn" onclick="sendQuickMessage('GO')">GO</button>
+                    <button class="preset-btn" onclick="sendQuickMessage('HOLD')">Hold</button>
+                    <button class="preset-btn" onclick="sendQuickMessage('CLEAR')">Clear</button>
+                </div>
+                
+                <textarea 
+                    class="message-input" 
+                    id="messageInput" 
+                    placeholder="Type custom message..."
+                    rows="2"
+                ></textarea>
+                
+                <div class="button-grid two-col">
+                    <button class="btn btn-accent" id="showMessageBtn">Show</button>
+                    <button class="btn btn-danger" id="flashBtn">Flash</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="footer">
+            dytorpro Remote v2.1
+        </div>
+    </div>
+
+    <!-- Disconnected Overlay -->
+    <div class="disconnected-overlay" id="disconnectedOverlay" style="display: none;">
+        <div class="disconnected-content">
+            <h2>Connection Lost</h2>
+            <p>Unable to connect to dytorpro controller</p>
+            <button class="retry-btn" onclick="reconnectWebSocket()">Retry Connection</button>
+        </div>
+    </div>
+
+    <script>
+        let ws = null;
+        let isConnected = false;
+        let controllerConnected = false;
+        let timerData = null;
+        let reconnectAttempts = 0;
+        const maxReconnectAttempts = 5;
+        let currentPermissions = [];
+        let clientId = null;
+
+        // DOM elements
+        const statusDot = document.getElementById('statusDot');
+        const statusText = document.getElementById('statusText');
+        const timerTitle = document.getElementById('timerTitle');
+        const timerTime = document.getElementById('timerTime');
+        const timerStatus = document.getElementById('timerStatus');
+        const startResumeBtn = document.getElementById('startResumeBtn');
+        const pauseBtn = document.getElementById('pauseBtn');
+        const showMessageBtn = document.getElementById('showMessageBtn');
+        const flashBtn = document.getElementById('flashBtn');
+        const messageInput = document.getElementById('messageInput');
+        const disconnectedOverlay = document.getElementById('disconnectedOverlay');
+
+        // Initialize WebSocket connection
+        function initWebSocket() {
+            const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+            const wsUrl = `${protocol}//${window.location.host}/ws`;
+            
+            ws = new WebSocket(wsUrl);
+
+            ws.onopen = () => {
+                isConnected = true;
+                reconnectAttempts = 0;
+                updateStatus();
+                hideDisconnectedOverlay();
+                
+                // Generate client ID
+                clientId = Date.now() + Math.random();
+                
+                // Register as remote client with permission request
+                ws.send(JSON.stringify({
+                    type: 'REGISTER_REMOTE',
+                    name: 'Remote Control',
+                    permissions: ['MESSAGE_ONLY', 'TIME_CONTROL'] // Request both message and time control
+                }));
+            };
+
+            ws.onmessage = (event) => {
+                try {
+                    const data = JSON.parse(event.data);
+                    handleWebSocketMessage(data);
+                } catch (error) {
+                    console.error('Error parsing message:', error);
+                }
+            };
+
+            ws.onclose = () => {
+                isConnected = false;
+                controllerConnected = false;
+                updateStatus();
+                scheduleReconnect();
+            };
+
+            ws.onerror = (error) => {
+                console.error('WebSocket error:', error);
+            };
+        }
+
+        // Handle incoming WebSocket messages
+        function handleWebSocketMessage(data) {
+            switch (data.type) {
+                case 'CONTROLLER_STATUS':
+                    controllerConnected = data.connected;
+                    currentPermissions = data.permissions || [];
+                    updateStatus();
+                    updateUIForPermissions();
+                    break;
+
+                case 'PERMISSIONS_GRANTED':
+                    currentPermissions = data.permissions;
+                    updateUIForPermissions();
+                    showNotification(`Permissions granted: ${data.permissions.join(', ')}`);
+                    break;
+                    
+                case 'PERMISSION_DENIED':
+                    showNotification(`Permission denied: ${data.message}`, 'error');
+                    break;
+
+                case 'TIMER_UPDATE':
+                    timerData = data.data;
+                    updateTimerDisplay();
+                    break;
+
+                case 'MESSAGE_UPDATE':
+                    break;
+
+                default:
+                    break;
+            }
+        }
+
+        // Update connection status
+        function updateStatus() {
+            if (isConnected && controllerConnected) {
+                statusDot.className = 'status-dot connected';
+                statusText.textContent = 'Connected to Controller';
+                enableControls();
+            } else if (isConnected && !controllerConnected) {
+                statusDot.className = 'status-dot disconnected';
+                statusText.textContent = 'Controller Offline';
+                disableControls();
+            } else {
+                statusDot.className = 'status-dot disconnected';
+                statusText.textContent = 'Disconnected';
+                disableControls();
+                showDisconnectedOverlay();
+            }
+        }
+
+        // Update UI based on current permissions
+        function updateUIForPermissions() {
+            const timerControls = document.querySelector('.timer-controls');
+            const addTimeSection = document.querySelector('.control-section:nth-child(2)');
+            const messageSection = document.querySelector('.control-section:nth-child(3)');
+            
+            // Show/hide timer controls based on TIME_CONTROL permission
+            if (currentPermissions.includes('TIME_CONTROL') || currentPermissions.includes('FULL_CONTROL')) {
+                timerControls.style.display = 'flex';
+                addTimeSection.style.display = 'block';
+            } else {
+                timerControls.style.display = 'none';
+                addTimeSection.style.display = 'none';
+            }
+            
+            // Show/hide message controls based on MESSAGE_ONLY permission
+            if (currentPermissions.includes('MESSAGE_ONLY') || currentPermissions.includes('TIME_CONTROL') || currentPermissions.includes('FULL_CONTROL')) {
+                messageSection.style.display = 'block';
+            } else {
+                messageSection.style.display = 'none';
+            }
+            
+            // Update status text to show current permissions
+            if (currentPermissions.length > 0) {
+                statusText.textContent = `Connected - Permissions: ${currentPermissions.join(', ')}`;
+            } else {
+                statusText.textContent = 'Connected - No permissions granted';
+            }
+        }
+        
+        // Show notification to user
+        function showNotification(message, type = 'info') {
+            // Create notification element
+            const notification = document.createElement('div');
+            notification.className = `notification ${type}`;
+            notification.textContent = message;
+            notification.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                background: ${type === 'error' ? '#ef4444' : '#10b981'};
+                color: white;
+                padding: 12px 20px;
+                border-radius: 8px;
+                font-size: 14px;
+                font-weight: 500;
+                z-index: 1000;
+                animation: slideIn 0.3s ease-out;
+            `;
+            
+            document.body.appendChild(notification);
+            
+            // Remove notification after 3 seconds
+            setTimeout(() => {
+                notification.style.animation = 'slideOut 0.3s ease-in';
+                setTimeout(() => {
+                    document.body.removeChild(notification);
+                }, 300);
+            }, 3000);
+        }
+
+        // Update timer display
+        function updateTimerDisplay() {
+            if (!timerData) return;
+
+            timerTitle.textContent = timerData.title || 'Timer';
+            
+            const time = formatTime(timerData.currentTime || 0);
+            timerTime.textContent = time;
+            
+            if (timerData.isTimeUp && !timerData.countUp) {
+                timerTime.className = 'timer-time time-up';
+                timerTime.textContent = timerData.timeUpMessage || 'TIME UP';
+                timerStatus.textContent = 'Time Expired';
+            } else {
+                timerTime.className = 'timer-time';
+                if (timerData.paused) {
+                    timerStatus.textContent = 'Paused';
+                } else if (timerData.isTimeUp && timerData.countUp) {
+                    timerStatus.textContent = 'Overtime';
+                } else {
+                    timerStatus.textContent = 'Running';
+                }
+            }
+
+            // Update start/resume button text
+            if (timerData.paused) {
+                startResumeBtn.textContent = 'Resume';
+            } else {
+                startResumeBtn.textContent = 'Start';
+            }
+        }
+
+        // Format time display
+        function formatTime(seconds) {
+            if (typeof seconds !== 'number') return '00:00';
+            
+            const h = Math.floor(seconds / 3600);
+            const m = Math.floor((seconds % 3600) / 60);
+            const s = seconds % 60;
+            
+            if (h > 0) {
+                return `${h}:${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+            }
+            return `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+        }
+
+        // Send command to controller
+        function sendCommand(action, data = {}) {
+            if (!ws || ws.readyState !== WebSocket.OPEN) {
+                return;
+            }
+
+            ws.send(JSON.stringify({
+                type: 'REMOTE_CONTROL',
+                action,
+                data
+            }));
+        }
+
+        // Control functions
+        function startResume() {
+            sendCommand('START_RESUME');
+        }
+
+        function pause() {
+            sendCommand('PAUSE');
+        }
+
+        function addTime(seconds) {
+            sendCommand('ADD_TIME', { seconds });
+        }
+
+        function flashMessage() {
+            sendCommand('FLASH_MESSAGE');
+        }
+
+        function showHideMessage() {
+            const message = messageInput.value.trim();
+            if (message) {
+                sendCommand('SEND_MESSAGE', { message });
+                messageInput.value = '';
+            } else {
+                sendCommand('SHOW_MESSAGE');
+            }
+        }
+
+        function sendQuickMessage(message) {
+            sendCommand('SEND_MESSAGE', { message });
+        }
+
+        // Enable/disable controls
+        function enableControls() {
+            const buttons = document.querySelectorAll('.btn');
+            buttons.forEach(btn => btn.disabled = false);
+            messageInput.disabled = false;
+        }
+
+        function disableControls() {
+            const buttons = document.querySelectorAll('.btn');
+            buttons.forEach(btn => btn.disabled = true);
+            messageInput.disabled = true;
+        }
+
+        // Show/hide disconnected overlay
+        function showDisconnectedOverlay() {
+            disconnectedOverlay.style.display = 'flex';
+        }
+
+        function hideDisconnectedOverlay() {
+            disconnectedOverlay.style.display = 'none';
+        }
+
+        // Reconnection logic
+        function scheduleReconnect() {
+            if (reconnectAttempts < maxReconnectAttempts) {
+                const delay = Math.min(1000 * Math.pow(2, reconnectAttempts), 10000);
+                
+                setTimeout(() => {
+                    reconnectAttempts++;
+                    initWebSocket();
+                }, delay);
+            } else {
+                showDisconnectedOverlay();
+            }
+        }
+
+        function reconnectWebSocket() {
+            reconnectAttempts = 0;
+            hideDisconnectedOverlay();
+            initWebSocket();
+        }
+
+        // Event listeners
+        startResumeBtn.addEventListener('click', startResume);
+        pauseBtn.addEventListener('click', pause);
+        showMessageBtn.addEventListener('click', showHideMessage);
+        flashBtn.addEventListener('click', flashMessage);
+
+        // Handle Enter key in message input
+        messageInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                showHideMessage();
+            }
+        });
+
+        // Initialize connection on page load
+        document.addEventListener('DOMContentLoaded', () => {
+            initWebSocket();
+        });
+
+        // Handle page visibility changes
+        document.addEventListener('visibilitychange', () => {
+            if (!document.hidden && !isConnected) {
+                reconnectWebSocket();
+            }
+        });
+    </script>
+</body>
+</html>
