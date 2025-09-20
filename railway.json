@@ -5,6 +5,8 @@
   },
   "deploy": {
     "startCommand": "node server/room-server.js",
-    "restartPolicyType": "ON_FAILURE"
+    "restartPolicyType": "ON_FAILURE",
+    "healthcheckPath": "/api/rooms/health",
+    "healthcheckTimeout": 100
   }
 }
